@@ -83,6 +83,44 @@ export interface MedicationAgentAnalysis {
   overallSafetyScore: number; // 0 to 100
 }
 
+export type TimelineCategory = 'Medications' | 'Lab Results' | 'Imaging Scans' | 'Referrals' | 'Clinical Visits' | 'Orders' | 'General';
+export type TimelineSeverity = 'normal' | 'info' | 'warning' | 'critical';
+
+export interface TimelineEvent {
+  id: string;
+  timestamp: string; // ISO string YYYY-MM-DD
+  eventType: 'MEDICATION_STARTED' | 'MEDICATION_MODIFIED' | 'LAB_RESULT' | 'IMAGING_RESULT' | 'REFERRAL' | 'VISIT_SUMMARY' | 'ORDER_PLACED' | 'DOCUMENT_UPLOAD';
+  category: TimelineCategory;
+  title: string;
+  subtitle: string;
+  details?: string;
+  severity: TimelineSeverity;
+  sourceDocId: string;
+  sourceDocName: string;
+  providerName?: string;
+  facilityName?: string;
+  tags?: string[];
+  colorAccent: string;
+  iconName: string;
+}
+
+export interface PatientTimelineSummary {
+  patientName: string;
+  earliestDate: string;
+  latestDate: string;
+  totalEventsCount: number;
+  categoryBreakdown: Record<TimelineCategory, number>;
+  activeSafetyAlertsCount: number;
+}
+
+export interface TimelineFilterOptions {
+  category?: TimelineCategory | 'ALL';
+  severity?: TimelineSeverity | 'ALL';
+  searchTerm?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface ClinicalFinding {
   id: string;
   heading: string;      // e.g. "Impression", "Diagnosis", "Recommendation"

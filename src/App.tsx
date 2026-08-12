@@ -8,6 +8,7 @@ import { ClassRegistryInspector } from './components/ClassRegistryInspector';
 import { AgentBridgeView } from './components/AgentBridgeView';
 import { TrendDashboard } from './components/TrendDashboard';
 import { MedicationDashboard } from './components/MedicationDashboard';
+import { TimelineDashboard } from './components/TimelineDashboard';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useMedicalData();
@@ -21,6 +22,7 @@ const MainContent: React.FC = () => {
       {activeTab === 'bridge' && <AgentBridgeView />}
       {activeTab === 'trends' && <TrendDashboard />}
       {activeTab === 'medications' && <MedicationDashboard />}
+      {activeTab === 'timeline' && <TimelineDashboard />}
     </main>
   );
 };

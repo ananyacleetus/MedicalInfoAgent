@@ -10,7 +10,8 @@ import {
   UploadCloud,
   Stethoscope,
   RotateCcw,
-  Pill
+  Pill,
+  CalendarClock
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -18,15 +19,17 @@ export const Navbar: React.FC = () => {
   const bridge = MedicalDataBridge.getInstance();
   const medAnalysis = bridge.getMedicationAgentAnalysis();
   const medAlertCount = medAnalysis.interactionAlerts.length + medAnalysis.duplicateAlerts.length;
+  const timelineEvents = bridge.getPatientTimeline();
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'uploader', label: 'Document Ingestion', icon: <UploadCloud size={18} /> },
     { id: 'vault', label: 'Document Vault', icon: <FolderKanban size={18} />, badge: documents.length },
     { id: 'viewer', label: 'Document Inspector', icon: <Eye size={18} /> },
-    { id: 'registry', label: 'Class Registry', icon: <Blocks size={18} /> },
-    { id: 'bridge', label: 'Insights Data Bridge', icon: <Network size={18} /> },
-    { id: 'trends', label: 'Biomarker Trends', icon: <TrendingUp size={18} /> },
+    { id: 'timeline', label: 'Patient Timeline', icon: <CalendarClock size={18} />, badge: timelineEvents.length },
     { id: 'medications', label: 'Medication Safety', icon: <Pill size={18} />, badge: medAlertCount },
+    { id: 'trends', label: 'Biomarker Trends', icon: <TrendingUp size={18} /> },
+    { id: 'bridge', label: 'Insights Data Bridge', icon: <Network size={18} /> },
+    { id: 'registry', label: 'Class Registry', icon: <Blocks size={18} /> },
   ];
 
   return (

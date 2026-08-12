@@ -1,5 +1,6 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions } from './types';
 import { MedicationAgent } from './MedicationAgent';
+import { TimelineAgent } from './TimelineAgent';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -103,6 +104,24 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Retrieves the complete unified chronological timeline of all clinical events
+   */
+  public getPatientTimeline(filters?: TimelineFilterOptions): TimelineEvent[] {
+    const docs = this.getAllDocuments();
+    const timelineAgent = TimelineAgent.getInstance();
+    const fullTimeline = timelineAgent.buildUnifiedTimeline(docs);
+    return filters ? timelineAgent.filterTimeline(fullTimeline, filters) : fullTimeline;
+  }
+
+  /**
+   * Retrieves high-level timeline metrics summary
+   */
+  public getTimelineSummary(): PatientTimelineSummary {
+    const timeline = this.getPatientTimeline();
+    return TimelineAgent.getInstance().getTimelineSummary(timeline);
+  }
+
+  /**
    * Exports a structured JSON payload engineered specifically for downstream Insights & Analytics AI agents
    */
   public exportAgentPayload(): {
@@ -116,6 +135,10 @@ export class MedicalDataBridge {
     biomarkers: BiomarkerObservation[];
     medications: MedicationEntry[];
     medicationAnalysis: MedicationAgentAnalysis;
+    patientTimeline: {
+      summary: PatientTimelineSummary;
+      events: TimelineEvent[];
+    };
     documentSummaries: Array<{
       id: string;
       filename: string;
@@ -128,6 +151,8 @@ export class MedicalDataBridge {
     const allBiomarkers = this.getAllBiomarkerObservations();
     const allMeds = this.getAllMedications();
     const medicationAnalysis = this.getMedicationAgentAnalysis();
+    const timelineEvents = this.getPatientTimeline();
+    const timelineSummary = this.getTimelineSummary();
 
     const latestDoc = allDocs[allDocs.length - 1];
 
@@ -142,6 +167,10 @@ export class MedicalDataBridge {
       biomarkers: allBiomarkers,
       medications: allMeds,
       medicationAnalysis,
+      patientTimeline: {
+        summary: timelineSummary,
+        events: timelineEvents
+      },
       documentSummaries: allDocs.map(d => ({
         id: d.id,
         filename: d.filename,
