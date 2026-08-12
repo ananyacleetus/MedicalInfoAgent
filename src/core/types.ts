@@ -27,14 +27,60 @@ export interface BiomarkerObservation {
 export interface MedicationEntry {
   id: string;
   drugName: string;     // e.g. "Amoxicillin", "Lisinopril"
+  genericName?: string;
+  brandName?: string;
   dosage: string;       // e.g. "500 mg"
   frequency: string;    // e.g. "Twice daily"
   route?: string;       // e.g. "Oral"
   refills?: number;
   prescriber?: string;
   startDate?: string;
+  discontinuedDate?: string;
+  status?: 'ACTIVE' | 'MODIFIED' | 'DISCONTINUED';
   sourceDocId: string;
   sourceDocName: string;
+}
+
+export interface MedicationChangeRecord {
+  id: string;
+  drugName: string;
+  changeType: 'DOSAGE_INCREASE' | 'DOSAGE_DECREASE' | 'FREQUENCY_CHANGE' | 'NEW_MEDICATION' | 'DISCONTINUED';
+  previousValue: string;
+  newValue: string;
+  date: string;
+  sourceDocId: string;
+  sourceDocName: string;
+  description: string;
+}
+
+export interface DuplicateMedicationAlert {
+  id: string;
+  drugName: string;
+  matchType: 'EXACT_DUPLICATE' | 'GENERIC_BRAND_DUPLICATE' | 'SAME_CLASS_DUPLICATE';
+  entries: MedicationEntry[];
+  riskSeverity: 'WARNING' | 'HIGH';
+  description: string;
+}
+
+export interface DrugInteractionAlert {
+  id: string;
+  drugA: string;
+  drugB: string;
+  severity: 'CRITICAL' | 'WARNING' | 'MODERATE' | 'INFO';
+  mechanism: string;
+  clinicalImpact: string;
+  recommendation: string;
+  sourceEntries: MedicationEntry[];
+}
+
+export interface MedicationAgentAnalysis {
+  analyzedAt: string;
+  activeMedications: MedicationEntry[];
+  totalMedicationsCount: number;
+  changesTracked: MedicationChangeRecord[];
+  duplicateAlerts: DuplicateMedicationAlert[];
+  interactionAlerts: DrugInteractionAlert[];
+  overallSafetyScore: number; // 0 to 100
 }
 
 export interface ClinicalFinding {
@@ -91,7 +137,7 @@ export abstract class BaseMedicalDocumentClass {
   /**
    * Evaluates document text and returns match confidence between 0.0 and 1.0
    */
-  abstract evaluateMatch(ocrText: string, metadata?: Record<string, any>): {
+  abstract evaluateMatch(ocrText: string, metadata?: Record<string, unknown>): {
     confidence: number;
     matchingSignals: string[];
   };

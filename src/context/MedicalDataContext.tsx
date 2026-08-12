@@ -4,7 +4,7 @@ import { MedicalDataBridge } from '../core/MedicalDataBridge';
 import { SAMPLE_MEDICAL_DOCUMENTS } from '../services/sampleDocs';
 import { processMedicalDocument } from '../services/documentProcessor';
 
-export type ActiveTab = 'uploader' | 'vault' | 'viewer' | 'registry' | 'bridge' | 'trends';
+export type ActiveTab = 'uploader' | 'vault' | 'viewer' | 'registry' | 'bridge' | 'trends' | 'medications';
 
 interface MedicalDataContextType {
   documents: ProcessedDocument[];

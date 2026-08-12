@@ -1,4 +1,5 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis } from './types';
+import { MedicationAgent } from './MedicationAgent';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -93,6 +94,15 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Run the Medication Agent to analyze changes, duplicates, and drug-drug interactions
+   */
+  public getMedicationAgentAnalysis(): MedicationAgentAnalysis {
+    const meds = this.getAllMedications();
+    const agent = MedicationAgent.getInstance();
+    return agent.analyzeMedications(meds);
+  }
+
+  /**
    * Exports a structured JSON payload engineered specifically for downstream Insights & Analytics AI agents
    */
   public exportAgentPayload(): {
@@ -105,6 +115,7 @@ export class MedicalDataBridge {
     };
     biomarkers: BiomarkerObservation[];
     medications: MedicationEntry[];
+    medicationAnalysis: MedicationAgentAnalysis;
     documentSummaries: Array<{
       id: string;
       filename: string;
@@ -116,6 +127,7 @@ export class MedicalDataBridge {
     const allDocs = this.getAllDocuments();
     const allBiomarkers = this.getAllBiomarkerObservations();
     const allMeds = this.getAllMedications();
+    const medicationAnalysis = this.getMedicationAgentAnalysis();
 
     const latestDoc = allDocs[allDocs.length - 1];
 
@@ -129,6 +141,7 @@ export class MedicalDataBridge {
       },
       biomarkers: allBiomarkers,
       medications: allMeds,
+      medicationAnalysis,
       documentSummaries: allDocs.map(d => ({
         id: d.id,
         filename: d.filename,

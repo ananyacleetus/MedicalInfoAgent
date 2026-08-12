@@ -1,5 +1,6 @@
 import React from 'react';
 import { useMedicalData, ActiveTab } from '../context/MedicalDataContext';
+import { MedicalDataBridge } from '../core/MedicalDataBridge';
 import { 
   FolderKanban, 
   Eye, 
@@ -8,11 +9,15 @@ import {
   TrendingUp, 
   UploadCloud,
   Stethoscope,
-  RotateCcw
+  RotateCcw,
+  Pill
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const { activeTab, setActiveTab, documents, loadSampleDataset } = useMedicalData();
+  const bridge = MedicalDataBridge.getInstance();
+  const medAnalysis = bridge.getMedicationAgentAnalysis();
+  const medAlertCount = medAnalysis.interactionAlerts.length + medAnalysis.duplicateAlerts.length;
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'uploader', label: 'Document Ingestion', icon: <UploadCloud size={18} /> },
@@ -21,6 +26,7 @@ export const Navbar: React.FC = () => {
     { id: 'registry', label: 'Class Registry', icon: <Blocks size={18} /> },
     { id: 'bridge', label: 'Insights Data Bridge', icon: <Network size={18} /> },
     { id: 'trends', label: 'Biomarker Trends', icon: <TrendingUp size={18} /> },
+    { id: 'medications', label: 'Medication Safety', icon: <Pill size={18} />, badge: medAlertCount },
   ];
 
   return (

@@ -7,6 +7,7 @@ import { DocumentViewer } from './components/DocumentViewer';
 import { ClassRegistryInspector } from './components/ClassRegistryInspector';
 import { AgentBridgeView } from './components/AgentBridgeView';
 import { TrendDashboard } from './components/TrendDashboard';
+import { MedicationDashboard } from './components/MedicationDashboard';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useMedicalData();
@@ -19,6 +20,7 @@ const MainContent: React.FC = () => {
       {activeTab === 'registry' && <ClassRegistryInspector />}
       {activeTab === 'bridge' && <AgentBridgeView />}
       {activeTab === 'trends' && <TrendDashboard />}
+      {activeTab === 'medications' && <MedicationDashboard />}
     </main>
   );
 };

@@ -217,5 +217,96 @@ Specialist consultation requested for metabolic risk stratification and long-ter
       rawEntities: { specialty: 'Endocrinology' },
       confidenceScore: 0.93
     }
+  },
+  {
+    id: 'sample-rx-2-escalation',
+    filename: 'Prescription_Metformin_Lisinopril_May2026.pdf',
+    fileSize: 104500,
+    mimeType: 'application/pdf',
+    uploadTimestamp: '2026-05-10T11:00:00Z',
+    rawOcrText: `METRO HEALTH PHARMACY - REVISED PRESCRIPTION
+Patient: Alex Morgan | DOB: 1985-04-12
+Prescriber: Dr. Sarah Jenkins, MD
+
+Rx 1: Metformin HCl 1000 mg Oral Tablet (DOSAGE ADJUSTMENT)
+Sig: Take 1 tablet orally twice daily with morning and evening meals
+Qty: 60 tablets | Refills: 5 | Date: 2026-05-10
+
+Rx 2: Lisinopril 10 mg Oral Tablet
+Sig: Take 1 tablet orally once daily in the morning for blood pressure regulation
+Qty: 30 tablets | Refills: 5 | Date: 2026-05-10`,
+    ocrEngineUsed: 'pdfjs-native',
+    classification: {
+      classId: 'prescription',
+      categoryName: 'Prescription',
+      confidence: 0.97,
+      matchingSignals: ['Matches prescription indicator: "rx"', 'Matches prescription indicator: "sig:"'],
+      registeredByAgent: 'Pharmacy Subagent'
+    },
+    extractedPayload: {
+      patientName: 'Alex Morgan',
+      dob: '1985-04-12',
+      providerName: 'Dr. Sarah Jenkins, MD',
+      facilityName: 'Metro Health Pharmacy',
+      documentDate: '2026-05-10',
+      summary: 'Revised prescription increasing Metformin to 1000 mg twice daily and adding Lisinopril 10 mg daily.',
+      biomarkers: [],
+      medications: [
+        { id: 'm-2', drugName: 'Metformin HCl', dosage: '1000 mg', frequency: 'Twice daily with meals', route: 'Oral', refills: 5, prescriber: 'Dr. Sarah Jenkins, MD', startDate: '2026-05-10', status: 'MODIFIED', sourceDocId: 'sample-rx-2-escalation', sourceDocName: 'Prescription_Metformin_Lisinopril_May2026.pdf' },
+        { id: 'm-3', drugName: 'Lisinopril', dosage: '10 mg', frequency: 'Once daily', route: 'Oral', refills: 5, prescriber: 'Dr. Sarah Jenkins, MD', startDate: '2026-05-10', status: 'ACTIVE', sourceDocId: 'sample-rx-2-escalation', sourceDocName: 'Prescription_Metformin_Lisinopril_May2026.pdf' }
+      ],
+      findings: [],
+      rawEntities: { rxCount: '2' },
+      confidenceScore: 0.97
+    }
+  },
+  {
+    id: 'sample-visit-cardiology',
+    filename: 'Cardiology_Consultation_VisitSummary.pdf',
+    fileSize: 184200,
+    mimeType: 'application/pdf',
+    uploadTimestamp: '2026-06-12T14:30:00Z',
+    rawOcrText: `METRO CARDIOLOGY SPECIALIST CLINIC - VISIT SUMMARY
+Patient: Alex Morgan | DOB: 1985-04-12
+Attending Physician: Dr. Marcus Vance, MD (Cardiology)
+Date of Visit: 2026-06-12
+
+CHIEF COMPLAINT & IMPRESSION:
+Follow-up for mild blood pressure elevation. Patient is currently on Lisinopril 10 mg daily and Metformin 1000 mg BID.
+
+MEDICATION ORDERS & RECONCILIATION:
+1. Spironolactone 25 mg oral tablet - Take 1 tablet daily in the morning (Added for fluid & BP management).
+2. Ibuprofen 400 mg oral tablet - Take PRN as needed for joint pain.
+3. Glucophage (Metformin) 1000 mg - Re-confirmed daily regimen.
+
+CLINICAL RECOMMENDATIONS:
+Routine serum potassium and renal panel ordered in 2 weeks given concurrent Lisinopril and Spironolactone therapy.`,
+    ocrEngineUsed: 'pdfjs-native',
+    classification: {
+      classId: 'visit-summary',
+      categoryName: 'Visit Summary',
+      confidence: 0.95,
+      matchingSignals: ['Matches clinical note indicator: "visit summary"', 'Matches medication list indicator: "medication orders"'],
+      registeredByAgent: 'Clinical Notes Subagent'
+    },
+    extractedPayload: {
+      patientName: 'Alex Morgan',
+      dob: '1985-04-12',
+      providerName: 'Dr. Marcus Vance, MD',
+      facilityName: 'Metro Cardiology Specialist Clinic',
+      documentDate: '2026-06-12',
+      summary: 'Cardiology consultation summary initiating Spironolactone 25 mg daily and Ibuprofen 400 mg PRN alongside Lisinopril and Glucophage.',
+      biomarkers: [],
+      medications: [
+        { id: 'm-4', drugName: 'Spironolactone', dosage: '25 mg', frequency: 'Once daily', route: 'Oral', prescriber: 'Dr. Marcus Vance, MD', startDate: '2026-06-12', status: 'ACTIVE', sourceDocId: 'sample-visit-cardiology', sourceDocName: 'Cardiology_Consultation_VisitSummary.pdf' },
+        { id: 'm-5', drugName: 'Ibuprofen', dosage: '400 mg', frequency: 'PRN as needed', route: 'Oral', prescriber: 'Dr. Marcus Vance, MD', startDate: '2026-06-12', status: 'ACTIVE', sourceDocId: 'sample-visit-cardiology', sourceDocName: 'Cardiology_Consultation_VisitSummary.pdf' },
+        { id: 'm-6', drugName: 'Glucophage', dosage: '1000 mg', frequency: 'Twice daily', route: 'Oral', prescriber: 'Dr. Marcus Vance, MD', startDate: '2026-06-12', status: 'ACTIVE', sourceDocId: 'sample-visit-cardiology', sourceDocName: 'Cardiology_Consultation_VisitSummary.pdf' }
+      ],
+      findings: [
+        { id: 'f-6', heading: 'Cardiology Recommendation', text: 'Monitor serum potassium and creatinine due to Lisinopril and Spironolactone combination.', severity: 'warning' }
+      ],
+      rawEntities: { specialty: 'Cardiology' },
+      confidenceScore: 0.95
+    }
   }
 ];
