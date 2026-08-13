@@ -1,6 +1,7 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis } from './types';
 import { MedicationAgent } from './MedicationAgent';
 import { TimelineAgent } from './TimelineAgent';
+import { LabAgent } from './LabAgent';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -104,6 +105,15 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Run the Lab Intelligence Agent to analyze trends, normalize units, and calculate percentage deltas
+   */
+  public getLabAgentAnalysis(): LabAgentAnalysis {
+    const observations = this.getAllBiomarkerObservations();
+    const labAgent = LabAgent.getInstance();
+    return labAgent.analyzeLabTrends(observations);
+  }
+
+  /**
    * Retrieves the complete unified chronological timeline of all clinical events
    */
   public getPatientTimeline(filters?: TimelineFilterOptions): TimelineEvent[] {
@@ -135,6 +145,7 @@ export class MedicalDataBridge {
     biomarkers: BiomarkerObservation[];
     medications: MedicationEntry[];
     medicationAnalysis: MedicationAgentAnalysis;
+    labAnalysis: LabAgentAnalysis;
     patientTimeline: {
       summary: PatientTimelineSummary;
       events: TimelineEvent[];
@@ -151,6 +162,7 @@ export class MedicalDataBridge {
     const allBiomarkers = this.getAllBiomarkerObservations();
     const allMeds = this.getAllMedications();
     const medicationAnalysis = this.getMedicationAgentAnalysis();
+    const labAnalysis = this.getLabAgentAnalysis();
     const timelineEvents = this.getPatientTimeline();
     const timelineSummary = this.getTimelineSummary();
 
@@ -167,6 +179,7 @@ export class MedicalDataBridge {
       biomarkers: allBiomarkers,
       medications: allMeds,
       medicationAnalysis,
+      labAnalysis,
       patientTimeline: {
         summary: timelineSummary,
         events: timelineEvents

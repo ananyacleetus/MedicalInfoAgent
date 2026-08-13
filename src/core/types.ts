@@ -121,6 +121,51 @@ export interface TimelineFilterOptions {
   endDate?: string;
 }
 
+export interface UnitConversionRule {
+  canonicalName: string;
+  fromUnit: string;
+  toUnit: string;
+  convert: (value: number) => number;
+}
+
+export interface BiomarkerTrendMetric {
+  biomarkerName: string;        // canonical display name
+  loincCode?: string;
+  normalizedUnit: string;        // unit after conversion (e.g. mg/dL)
+  baselineValue: number;
+  latestValue: number;
+  baselineDate: string;
+  latestDate: string;
+  absoluteChange: number;
+  deltaPercent: number;          // e.g. -20.3 (percentage)
+  trendDirection: 'IMPROVING' | 'WORSENING' | 'STABLE' | 'ELEVATED';
+  currentStatus: 'NORMAL' | 'HIGH' | 'LOW' | 'CRITICAL';
+  unitNormalized: boolean;       // true if source unit was converted
+  thresholdCrossed?: boolean;
+  statusShift?: string;          // e.g. "HIGH → NORMAL"
+  observationsCount: number;
+  refRangeText?: string;
+}
+
+export interface LabClinicalInsight {
+  id: string;
+  biomarkerName: string;         // primary biomarker this insight relates to
+  insightType: 'ABNORMAL_VALUE' | 'RAPID_CHANGE' | 'CONSISTENT_WORSENING' | 'NORMALIZATION' | 'REFERENCE_EXCEEDED';
+  severity: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+  description: string;
+  recommendation?: string;
+  affectedBiomarkers: string[];
+}
+
+export interface LabAgentAnalysis {
+  analyzedAt: string;
+  normalizedObservationsCount: number;
+  conversionsAppliedCount: number;
+  trendMetrics: BiomarkerTrendMetric[];
+  clinicalInsights: LabClinicalInsight[];
+  overallLabStatus: 'NORMAL' | 'ATTENTION_NEEDED' | 'CRITICAL';
+}
+
 export interface ClinicalFinding {
   id: string;
   heading: string;      // e.g. "Impression", "Diagnosis", "Recommendation"
