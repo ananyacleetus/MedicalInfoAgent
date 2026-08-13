@@ -1,7 +1,8 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis, DiagnosisAgentAnalysis, DiagnosisEntry, SymptomEntry } from './types';
 import { MedicationAgent } from './MedicationAgent';
 import { TimelineAgent } from './TimelineAgent';
 import { LabAgent } from './LabAgent';
+import { DiagnosisAgent } from './DiagnosisAgent';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -96,6 +97,38 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Query all extracted diagnoses across all ingested documents
+   */
+  public getAllDiagnoses(): DiagnosisEntry[] {
+    const diagnoses: DiagnosisEntry[] = [];
+    this.documents.forEach(doc => {
+      if (doc.extractedPayload && doc.extractedPayload.diagnoses) {
+        diagnoses.push(...doc.extractedPayload.diagnoses);
+      }
+      doc.extractedPayload?.medications?.forEach(med => {
+        if (med.diagnoses) diagnoses.push(...med.diagnoses);
+      });
+    });
+    return diagnoses;
+  }
+
+  /**
+   * Query all extracted symptoms across all ingested documents
+   */
+  public getAllSymptoms(): SymptomEntry[] {
+    const symptoms: SymptomEntry[] = [];
+    this.documents.forEach(doc => {
+      if (doc.extractedPayload && doc.extractedPayload.symptoms) {
+        symptoms.push(...doc.extractedPayload.symptoms);
+      }
+      doc.extractedPayload?.medications?.forEach(med => {
+        if (med.symptoms) symptoms.push(...med.symptoms);
+      });
+    });
+    return symptoms;
+  }
+
+  /**
    * Run the Medication Agent to analyze changes, duplicates, and drug-drug interactions
    */
   public getMedicationAgentAnalysis(): MedicationAgentAnalysis {
@@ -111,6 +144,14 @@ export class MedicalDataBridge {
     const observations = this.getAllBiomarkerObservations();
     const labAgent = LabAgent.getInstance();
     return labAgent.analyzeLabTrends(observations);
+  }
+
+  /**
+   * Run the Diagnosis & Symptom Intelligence Agent for temporal episode clustering
+   */
+  public getDiagnosisAgentAnalysis(windowDays?: number): DiagnosisAgentAnalysis {
+    const docs = this.getAllDocuments();
+    return DiagnosisAgent.getInstance().analyzeDiagnoses(docs, windowDays);
   }
 
   /**
@@ -144,8 +185,11 @@ export class MedicalDataBridge {
     };
     biomarkers: BiomarkerObservation[];
     medications: MedicationEntry[];
+    allDiagnoses: DiagnosisEntry[];
+    allSymptoms: SymptomEntry[];
     medicationAnalysis: MedicationAgentAnalysis;
     labAnalysis: LabAgentAnalysis;
+    diagnosisAnalysis: DiagnosisAgentAnalysis;
     patientTimeline: {
       summary: PatientTimelineSummary;
       events: TimelineEvent[];
@@ -156,13 +200,18 @@ export class MedicalDataBridge {
       category: string;
       summary: string;
       findingsCount: number;
+      diagnosesCount: number;
+      symptomsCount: number;
     }>;
   } {
     const allDocs = this.getAllDocuments();
     const allBiomarkers = this.getAllBiomarkerObservations();
     const allMeds = this.getAllMedications();
+    const allDiagnoses = this.getAllDiagnoses();
+    const allSymptoms = this.getAllSymptoms();
     const medicationAnalysis = this.getMedicationAgentAnalysis();
     const labAnalysis = this.getLabAgentAnalysis();
+    const diagnosisAnalysis = this.getDiagnosisAgentAnalysis();
     const timelineEvents = this.getPatientTimeline();
     const timelineSummary = this.getTimelineSummary();
 
@@ -178,8 +227,11 @@ export class MedicalDataBridge {
       },
       biomarkers: allBiomarkers,
       medications: allMeds,
+      allDiagnoses,
+      allSymptoms,
       medicationAnalysis,
       labAnalysis,
+      diagnosisAnalysis,
       patientTimeline: {
         summary: timelineSummary,
         events: timelineEvents
@@ -189,7 +241,9 @@ export class MedicalDataBridge {
         filename: d.filename,
         category: String(d.classification.categoryName),
         summary: d.extractedPayload.summary,
-        findingsCount: d.extractedPayload.findings.length
+        findingsCount: d.extractedPayload.findings?.length || 0,
+        diagnosesCount: d.extractedPayload.diagnoses?.length || 0,
+        symptomsCount: d.extractedPayload.symptoms?.length || 0
       }))
     };
   }

@@ -66,6 +66,8 @@ export const ClassRegistryInspector: React.FC = () => {
             text: `Document matched dynamically registered class [${customClassName}].`,
             severity: 'info'
           }],
+          diagnoses: [],
+          symptoms: [],
           rawEntities: { customClassId: this.classId },
           confidenceScore: 0.90
         };

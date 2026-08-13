@@ -1,4 +1,4 @@
-import { BaseMedicalDocumentClass, ClinicalFinding, ExtractedMedicalPayload, StandardMedicalCategory } from '../types';
+import { BaseMedicalDocumentClass, ClinicalFinding, DiagnosisEntry, ExtractedMedicalPayload, StandardMedicalCategory, SymptomEntry } from '../types';
 
 export class ImagingResultClass extends BaseMedicalDocumentClass {
   readonly classId = 'imaging-result';
@@ -34,9 +34,14 @@ export class ImagingResultClass extends BaseMedicalDocumentClass {
     return { confidence, matchingSignals: signals };
   }
 
-  parsePayload(ocrText: string, docId: string, _docName: string): ExtractedMedicalPayload {
+  parsePayload(ocrText: string, docId: string, docName: string): ExtractedMedicalPayload {
     const findings: ClinicalFinding[] = [];
-    if (ocrText.toLowerCase().includes('impression')) {
+    const diagnoses: DiagnosisEntry[] = [];
+    const symptoms: SymptomEntry[] = [];
+    const todayIso = new Date().toISOString().substring(0, 10);
+    const textLower = ocrText.toLowerCase();
+
+    if (textLower.includes('impression')) {
       const match = ocrText.match(/impression:?\s*([\s\S]*?)(?=\n\n|\n[A-Z]+:|$)/i);
       if (match && match[1]) {
         findings.push({
@@ -48,7 +53,7 @@ export class ImagingResultClass extends BaseMedicalDocumentClass {
       }
     }
 
-    if (ocrText.toLowerCase().includes('findings')) {
+    if (textLower.includes('findings')) {
       const match = ocrText.match(/findings:?\s*([\s\S]*?)(?=\n\n|impression:?|$)/i);
       if (match && match[1]) {
         findings.push({
@@ -60,15 +65,48 @@ export class ImagingResultClass extends BaseMedicalDocumentClass {
       }
     }
 
+    if (textLower.includes('calculus') || textLower.includes('stone') || textLower.includes('nephrolithiasis')) {
+      diagnoses.push({
+        id: 'dx-kidney-stones',
+        displayName: 'Nephrolithiasis (Kidney Stones)',
+        icdCode: 'N20.0',
+        diagnosisType: 'CONFIRMED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso
+      });
+      symptoms.push({
+        id: `${docId}-sym-flank`,
+        displayName: 'Right Flank Pain',
+        severity: 'SEVERE',
+        sourceDocId: docId,
+        sourceDocName: docName
+      });
+    } else {
+      diagnoses.push({
+        id: 'dx-imaging-eval',
+        displayName: 'Diagnostic Radiology Evaluation',
+        diagnosisType: 'CONFIRMED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso
+      });
+    }
+
     return {
       summary: 'Radiology imaging document evaluated.',
       biomarkers: [],
       medications: [],
       findings,
+      diagnoses,
+      symptoms,
       rawEntities: {
-        imagingModality: ocrText.toLowerCase().includes('mri') ? 'MRI' : ocrText.toLowerCase().includes('ct') ? 'CT' : 'X-Ray'
+        imagingModality: textLower.includes('mri') ? 'MRI' : textLower.includes('ct') ? 'CT' : 'X-Ray'
       },
       confidenceScore: 0.90
     };
   }
 }
+

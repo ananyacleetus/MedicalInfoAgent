@@ -1,4 +1,4 @@
-import { BaseMedicalDocumentClass, BiomarkerObservation, ExtractedMedicalPayload, StandardMedicalCategory } from '../types';
+import { BaseMedicalDocumentClass, BiomarkerObservation, DiagnosisEntry, ExtractedMedicalPayload, StandardMedicalCategory, SymptomEntry } from '../types';
 
 export class LabResultClass extends BaseMedicalDocumentClass {
   readonly classId = 'lab-result';
@@ -36,6 +36,8 @@ export class LabResultClass extends BaseMedicalDocumentClass {
 
   parsePayload(ocrText: string, docId: string, docName: string): ExtractedMedicalPayload {
     const biomarkers: BiomarkerObservation[] = [];
+    const diagnoses: DiagnosisEntry[] = [];
+    const symptoms: SymptomEntry[] = [];
 
     const labDefinitions = [
       { name: 'Glucose', loinc: '2345-7', unit: 'mg/dL', min: 70, max: 99, regex: /glucose\s+([0-9.]+)/i },
@@ -78,13 +80,40 @@ export class LabResultClass extends BaseMedicalDocumentClass {
       }
     });
 
+    // Check for metabolic/prediabetes signals
+    if (ocrText.toLowerCase().includes('prediabetes') || ocrText.toLowerCase().includes('glucose elevated')) {
+      diagnoses.push({
+        id: 'dx-prediabetes',
+        displayName: 'Prediabetes (Impaired Fasting Glucose)',
+        icdCode: 'R73.09',
+        diagnosisType: 'SUSPECTED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso.substring(0, 10)
+      });
+    } else {
+      diagnoses.push({
+        id: 'dx-routine-lab',
+        displayName: 'Routine Diagnostic Bloodwork Evaluation',
+        diagnosisType: 'CONFIRMED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso.substring(0, 10)
+      });
+    }
+
     return {
       summary: `Parsed lab result containing ${biomarkers.length} biomarker observations.`,
       biomarkers,
       medications: [],
       findings: [],
+      diagnoses,
+      symptoms,
       rawEntities: { labCount: String(biomarkers.length) },
       confidenceScore: 0.95
     };
   }
 }
+

@@ -8,6 +8,74 @@ export type StandardMedicalCategory =
   | 'Imaging Order'
   | string; // Extensible for custom document classes registered by future agents
 
+export interface SymptomEntry {
+  id: string;
+  displayName: string;          // e.g. "Abdominal Pain", "Flank Pain", "Indigestion"
+  snomedCode?: string;          // SNOMED CT code (optional)
+  severity?: 'MILD' | 'MODERATE' | 'SEVERE';
+  onset?: string;               // ISO date or free text
+  sourceDocId: string;
+  sourceDocName: string;
+}
+
+export interface DiagnosisEntry {
+  id: string;                   // Stable canonical condition ID, e.g. "dx-kidney-stones", "dx-prediabetes"
+  displayName: string;          // e.g. "Nephrolithiasis (Kidney Stones)"
+  icdCode?: string;             // ICD-10 code, e.g. "N20.0"
+  diagnosisType: 'CONFIRMED' | 'SUSPECTED' | 'RULE_OUT' | 'HISTORICAL';
+  primaryDiagnosis: boolean;
+  relevantUse?: string;         // Specific on/off-label indication for medications
+  sourceDocId: string;
+  sourceDocName: string;
+  diagnosedDate?: string;       // ISO date — CRITICAL for episode clustering
+  provider?: string;
+}
+
+export interface LinkedClinicalRecord {
+  recordType: 'DOCUMENT' | 'MEDICATION' | 'BIOMARKER' | 'LAB_INSIGHT';
+  recordId: string;
+  recordLabel: string;
+  documentCategory?: string;
+  date?: string;                // ISO date — used for episode window matching
+  sourceDocId: string;
+  sourceDocName: string;
+  severity?: string;
+}
+
+export interface ClinicalEpisode {
+  episodeId: string;            // e.g. "ep-dx-kidney-stones-2026-01"
+  diagnosisId: string;          // e.g. "dx-kidney-stones"
+  displayName: string;          // e.g. "Nephrolithiasis (Kidney Stones)"
+  icdCode?: string;
+  diagnosisType: DiagnosisEntry['diagnosisType'];
+  episodeStartDate: string;     // Earliest record date in cluster
+  episodeEndDate: string;       // Latest record date in cluster
+  windowDays: number;           // Clustering window used (default 60)
+  linkedSymptoms: SymptomEntry[];
+  linkedRecords: LinkedClinicalRecord[];
+  linkedMedications: string[];  // drug names
+  linkedBiomarkers: string[];   // canonical names
+  documentCount: number;
+}
+
+export interface DiagnosisAgentAnalysis {
+  analyzedAt: string;
+  episodeWindowDays: number;
+  totalUniqueConditions: number;
+  totalEpisodes: number;
+  totalSymptoms: number;
+  clinicalEpisodes: ClinicalEpisode[];
+  allDiagnoses: DiagnosisEntry[];    // Flat list of all diagnosis entries
+  allSymptoms: SymptomEntry[];       // Flat list of all symptom entries
+  confirmedDiagnoses: DiagnosisEntry[];
+  suspectedDiagnoses: DiagnosisEntry[];
+  symptomClusters: Array<{
+    clusterName: string;        // e.g. "Renal / Urinary Symptoms"
+    symptoms: SymptomEntry[];
+    linkedDiagnosisIds: string[];
+  }>;
+}
+
 export interface BiomarkerObservation {
   id: string;
   canonicalName: string; // e.g. "Glucose", "HbA1c", "Total Cholesterol", "Hemoglobin", "WBC"
@@ -22,6 +90,7 @@ export interface BiomarkerObservation {
   sourceDocId: string;
   sourceDocName: string;
   category: string;
+  relatedDiagnoses?: string[];   // diagnosisIds this lab value relates to
 }
 
 export interface MedicationEntry {
@@ -39,6 +108,8 @@ export interface MedicationEntry {
   status?: 'ACTIVE' | 'MODIFIED' | 'DISCONTINUED';
   sourceDocId: string;
   sourceDocName: string;
+  diagnoses?: DiagnosisEntry[];  // Specific relevant diagnoses for THIS prescription
+  symptoms?: SymptomEntry[];     // Symptoms this medication addresses
 }
 
 export interface MedicationChangeRecord {
@@ -183,6 +254,8 @@ export interface ExtractedMedicalPayload {
   biomarkers: BiomarkerObservation[];
   medications: MedicationEntry[];
   findings: ClinicalFinding[];
+  diagnoses: DiagnosisEntry[];   // ≥ 1 required for clinical documents
+  symptoms: SymptomEntry[];      // 0+ patient-reported symptoms
   rawEntities: Record<string, string>;
   confidenceScore: number; // 0.0 to 1.0
 }

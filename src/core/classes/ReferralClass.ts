@@ -1,4 +1,4 @@
-import { BaseMedicalDocumentClass, ExtractedMedicalPayload, StandardMedicalCategory } from '../types';
+import { BaseMedicalDocumentClass, DiagnosisEntry, ExtractedMedicalPayload, StandardMedicalCategory, SymptomEntry } from '../types';
 
 export class ReferralClass extends BaseMedicalDocumentClass {
   readonly classId = 'referral';
@@ -29,7 +29,35 @@ export class ReferralClass extends BaseMedicalDocumentClass {
     return { confidence, matchingSignals: signals };
   }
 
-  parsePayload(_ocrText: string, docId: string, _docName: string): ExtractedMedicalPayload {
+  parsePayload(ocrText: string, docId: string, docName: string): ExtractedMedicalPayload {
+    const todayIso = new Date().toISOString().substring(0, 10);
+    const textLower = ocrText.toLowerCase();
+    const diagnoses: DiagnosisEntry[] = [];
+    const symptoms: SymptomEntry[] = [];
+
+    if (textLower.includes('endocrin') || textLower.includes('glycemic')) {
+      diagnoses.push({
+        id: 'dx-prediabetes',
+        displayName: 'Prediabetes & Metabolic Risk',
+        icdCode: 'R73.09',
+        diagnosisType: 'SUSPECTED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso
+      });
+    } else {
+      diagnoses.push({
+        id: 'dx-specialist-consult',
+        displayName: 'Specialist Referral Evaluation',
+        diagnosisType: 'CONFIRMED',
+        primaryDiagnosis: true,
+        sourceDocId: docId,
+        sourceDocName: docName,
+        diagnosedDate: todayIso
+      });
+    }
+
     return {
       summary: 'Specialist referral letter parsed.',
       biomarkers: [],
@@ -40,8 +68,11 @@ export class ReferralClass extends BaseMedicalDocumentClass {
         text: 'Consultation requested for specialized evaluation.',
         severity: 'info'
       }],
+      diagnoses,
+      symptoms,
       rawEntities: {},
       confidenceScore: 0.88
     };
   }
 }
+

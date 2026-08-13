@@ -26,6 +26,8 @@ export async function processMedicalDocument(file: File): Promise<ProcessedDocum
       biomarkers: [],
       medications: [],
       findings: [],
+      diagnoses: [],
+      symptoms: [],
       rawEntities: {},
       confidenceScore: 0.50
     };

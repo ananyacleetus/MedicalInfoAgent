@@ -21,11 +21,14 @@ export const Navbar: React.FC = () => {
   const medAlertCount = medAnalysis.interactionAlerts.length + medAnalysis.duplicateAlerts.length;
   const timelineEvents = bridge.getPatientTimeline();
 
+  const dxAnalysis = bridge.getDiagnosisAgentAnalysis();
+
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'uploader', label: 'Document Ingestion', icon: <UploadCloud size={18} /> },
     { id: 'vault', label: 'Document Vault', icon: <FolderKanban size={18} />, badge: documents.length },
     { id: 'viewer', label: 'Document Inspector', icon: <Eye size={18} /> },
     { id: 'timeline', label: 'Patient Timeline', icon: <CalendarClock size={18} />, badge: timelineEvents.length },
+    { id: 'diagnoses', label: 'Diagnoses & Symptoms', icon: <Stethoscope size={18} />, badge: dxAnalysis.clinicalEpisodes.length },
     { id: 'medications', label: 'Medication Safety', icon: <Pill size={18} />, badge: medAlertCount },
     { id: 'trends', label: 'Biomarker Trends', icon: <TrendingUp size={18} /> },
     { id: 'bridge', label: 'Insights Data Bridge', icon: <Network size={18} /> },

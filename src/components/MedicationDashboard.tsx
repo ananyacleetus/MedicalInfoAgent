@@ -178,6 +178,16 @@ export const MedicationDashboard: React.FC = () => {
                     {med.startDate && <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Started: {med.startDate}</div>}
                   </div>
 
+                  {med.diagnoses && med.diagnoses.length > 0 && (
+                    <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {med.diagnoses.map(dx => (
+                        <span key={dx.id} style={{ fontSize: '10px', fontWeight: 600, background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: '10px' }}>
+                          Dx: {dx.displayName} {dx.relevantUse ? `(${dx.relevantUse})` : ''}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
                   <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed rgba(255,255,255,0.1)', fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <FileText size={12} /> Source: {med.sourceDocName}
                   </div>
