@@ -10,6 +10,7 @@ import { TrendDashboard } from './components/TrendDashboard';
 import { MedicationDashboard } from './components/MedicationDashboard';
 import { TimelineDashboard } from './components/TimelineDashboard';
 import { DiagnosisDashboard } from './components/DiagnosisDashboard';
+import { EHRIntegrationDashboard } from './components/EHRIntegrationDashboard';
 
 const MainContent: React.FC = () => {
   const { activeTab } = useMedicalData();
@@ -25,6 +26,7 @@ const MainContent: React.FC = () => {
       {activeTab === 'medications' && <MedicationDashboard />}
       {activeTab === 'timeline' && <TimelineDashboard />}
       {activeTab === 'diagnoses' && <DiagnosisDashboard />}
+      {activeTab === 'ehr' && <EHRIntegrationDashboard />}
     </main>
   );
 };

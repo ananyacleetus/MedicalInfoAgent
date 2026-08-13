@@ -1,8 +1,9 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis, DiagnosisAgentAnalysis, DiagnosisEntry, SymptomEntry } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis, DiagnosisAgentAnalysis, DiagnosisEntry, SymptomEntry, EHRIntegrationAnalysis, EHRSyncResult, EHRConnectionConfig, EHRProviderSystem } from './types';
 import { MedicationAgent } from './MedicationAgent';
 import { TimelineAgent } from './TimelineAgent';
 import { LabAgent } from './LabAgent';
 import { DiagnosisAgent } from './DiagnosisAgent';
+import { EHRAgent } from './EHRAgent';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -155,6 +156,21 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Run the EHR & Portal Integration Agent to get active connections & sync stats
+   */
+  public getEHRAgentAnalysis(): EHRIntegrationAnalysis {
+    return EHRAgent.getInstance().getAnalysis();
+  }
+
+  public connectEHRProvider(providerType: EHRProviderSystem): Promise<EHRConnectionConfig> {
+    return EHRAgent.getInstance().connectSystem(providerType);
+  }
+
+  public syncEHRProvider(connectionId: string): Promise<EHRSyncResult> {
+    return EHRAgent.getInstance().syncSystem(connectionId);
+  }
+
+  /**
    * Retrieves the complete unified chronological timeline of all clinical events
    */
   public getPatientTimeline(filters?: TimelineFilterOptions): TimelineEvent[] {
@@ -190,6 +206,7 @@ export class MedicalDataBridge {
     medicationAnalysis: MedicationAgentAnalysis;
     labAnalysis: LabAgentAnalysis;
     diagnosisAnalysis: DiagnosisAgentAnalysis;
+    ehrIntegrationAnalysis: EHRIntegrationAnalysis;
     patientTimeline: {
       summary: PatientTimelineSummary;
       events: TimelineEvent[];
@@ -212,6 +229,7 @@ export class MedicalDataBridge {
     const medicationAnalysis = this.getMedicationAgentAnalysis();
     const labAnalysis = this.getLabAgentAnalysis();
     const diagnosisAnalysis = this.getDiagnosisAgentAnalysis();
+    const ehrIntegrationAnalysis = this.getEHRAgentAnalysis();
     const timelineEvents = this.getPatientTimeline();
     const timelineSummary = this.getTimelineSummary();
 
@@ -232,6 +250,7 @@ export class MedicalDataBridge {
       medicationAnalysis,
       labAnalysis,
       diagnosisAnalysis,
+      ehrIntegrationAnalysis,
       patientTimeline: {
         summary: timelineSummary,
         events: timelineEvents

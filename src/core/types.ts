@@ -303,3 +303,84 @@ export abstract class BaseMedicalDocumentClass {
    */
   abstract parsePayload(ocrText: string, docId: string, docName: string): ExtractedMedicalPayload;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   EHR & Personal Health System Integration Types
+   ───────────────────────────────────────────────────────────── */
+
+export type EHRProviderSystem =
+  | 'EPIC_MYCHART'
+  | 'ORACLE_CERNER'
+  | 'ATHENA_HEALTH'
+  | 'ECLINICAL_WORKS'
+  | 'GENERIC_FHIR_R4'
+  | 'FOLLOW_MY_HEALTH'
+  | 'APPLE_HEALTH'
+  | 'ANDROID_HEALTH_CONNECT'
+  | 'CUSTOM_OAUTH';
+
+export type EHRAuthProtocol =
+  | 'SMART_ON_FHIR_PKCE'
+  | 'OAUTH2_AUTHORIZATION_CODE'
+  | 'HEALTHKIT_EXPORT_XML'
+  | 'HEALTH_CONNECT_JSON'
+  | 'API_KEY';
+
+export interface EHRConnectionConfig {
+  id: string;
+  systemName: string;
+  providerType: EHRProviderSystem;
+  authProtocol: EHRAuthProtocol;
+  fhirBaseUrl?: string;
+  clientId?: string;
+  scopes?: string[];
+  status: 'DISCONNECTED' | 'AUTHENTICATING' | 'CONNECTED' | 'SYNC_ERROR';
+  lastSyncedAt?: string;
+  recordsSyncedCount?: number;
+  accessToken?: string;
+  patientId?: string;
+}
+
+export interface FHIRResourceWrapper {
+  resourceType: 'Patient' | 'Condition' | 'MedicationRequest' | 'MedicationStatement' | 'Observation' | 'DiagnosticReport' | 'Encounter' | 'DocumentReference';
+  id: string;
+  code?: { coding?: Array<{ code?: string; display?: string; system?: string }>; text?: string };
+  subject?: { reference?: string; display?: string };
+  effectiveDateTime?: string;
+  authoredOn?: string;
+  status?: string;
+  valueQuantity?: { value: number; unit: string };
+  referenceRange?: Array<{ low?: { value: number }; high?: { value: number }; text?: string }>;
+  dosageInstruction?: Array<{ text?: string }>;
+  clinicalStatus?: { coding?: Array<{ code?: string }> };
+  category?: Array<{ coding?: Array<{ display?: string }> }>;
+}
+
+export interface EHRSyncResult {
+  connectionId: string;
+  providerType: EHRProviderSystem;
+  syncTimestamp: string;
+  importedDocumentsCount: number;
+  importedMedicationsCount: number;
+  importedBiomarkersCount: number;
+  importedDiagnosesCount: number;
+  rawPayloadSize: number;
+  status: 'SUCCESS' | 'PARTIAL' | 'FAILED';
+}
+
+export interface EHRIntegrationAnalysis {
+  analyzedAt: string;
+  activeConnectionsCount: number;
+  totalSyncedRecords: number;
+  connections: EHRConnectionConfig[];
+  recentSyncResults: EHRSyncResult[];
+  availableProviders: Array<{
+    system: EHRProviderSystem;
+    name: string;
+    description: string;
+    authProtocol: EHRAuthProtocol;
+    iconName: string;
+    logoColor: string;
+  }>;
+}
+
