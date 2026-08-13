@@ -6,6 +6,7 @@ import { ReferralClass } from './classes/ReferralClass';
 import { VisitSummaryClass } from './classes/VisitSummaryClass';
 import { LabOrderClass } from './classes/LabOrderClass';
 import { ImagingOrderClass } from './classes/ImagingOrderClass';
+import { InsuranceClaimClass } from './classes/InsuranceClaimClass';
 
 export class DocumentTypeRegistry {
   private static instance: DocumentTypeRegistry;
@@ -20,6 +21,7 @@ export class DocumentTypeRegistry {
     this.registerClass(new ReferralClass());
     this.registerClass(new LabOrderClass());
     this.registerClass(new ImagingOrderClass());
+    this.registerClass(new InsuranceClaimClass());
   }
 
   public static getInstance(): DocumentTypeRegistry {

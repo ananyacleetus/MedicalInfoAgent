@@ -120,20 +120,32 @@ export const DocumentVault: React.FC = () => {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <span style={{
-                    background: 'rgba(6, 182, 212, 0.15)',
-                    color: '#38bdf8',
-                    padding: '4px 10px',
-                    borderRadius: '12px',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <Tag size={12} />
-                    {doc.classification.categoryName}
-                  </span>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      background: 'rgba(6, 182, 212, 0.15)',
+                      color: '#38bdf8',
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <Tag size={12} />
+                      {doc.classification.categoryName}
+                    </span>
+                    <span style={{
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#10b981',
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      fontSize: '11px',
+                      fontWeight: 700
+                    }}>
+                      {doc.provenance?.provenanceSource || 'File OCR Upload'}
+                    </span>
+                  </div>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Calendar size={12} />
                     {doc.uploadTimestamp.substring(0, 10)}

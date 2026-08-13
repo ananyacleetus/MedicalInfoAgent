@@ -8,6 +8,86 @@ export type StandardMedicalCategory =
   | 'Imaging Order'
   | string; // Extensible for custom document classes registered by future agents
 
+/* ─────────────────────────────────────────────────────────────
+   Provenance & Multi-Source Veracity Types
+   ───────────────────────────────────────────────────────────── */
+
+export type ProvenanceType =
+  | 'EMAIL_HEALTH_NOTIFICATION'
+  | 'EMAIL_INSURANCE_CLAIM'
+  | 'EHR_SMART_FHIR'
+  | 'PERSONAL_HEALTH_APP'
+  | 'MANUAL_OCR_UPLOAD';
+
+export interface ProvenanceMetadata {
+  provenanceSource: string;         // e.g. "Email Integration - Quest Diagnostics", "Email Integration - Anthem Blue Cross", "Email Integration"
+  provenanceType: ProvenanceType;
+  sourceTrustScore: number;         // 0.0 to 1.0
+  sourcesList?: string[];           // List of all confirming sources after multi-source deduplication
+  emailSender?: string;
+  emailSubject?: string;
+  emailReceivedDate?: string;
+  portalMagicLink?: string;
+}
+
+export interface SourceTrustWeightConfig {
+  provenanceType: ProvenanceType;
+  displayName: string;
+  defaultScore: number;             // System default
+  userScore: number;                // User customized weight (0.50 - 1.00)
+  rankOrder: number;                // Priority rank (1 = highest)
+}
+
+export interface InsuranceClaimEntry {
+  claimId: string;
+  insuranceCarrier: string;         // e.g. "Anthem Blue Cross", "UnitedHealth", "Aetna"
+  claimNumber: string;
+  serviceDate: string;
+  renderingProvider: string;
+  facilityName?: string;
+  diagnosesICD: Array<{ code: string; display: string }>;
+  proceduresCPT: Array<{ code: string; display: string; amountBilled: number }>;
+  medicationsClaimed: Array<{ drugName: string; dosage?: string; dateFilled: string }>;
+  totalBilled: number;
+  planPaid: number;
+  patientResponsibility: number;
+  claimStatus: 'PAID' | 'PENDING' | 'DENIED';
+  sourceDocId: string;
+  sourceDocName: string;
+  provenance?: ProvenanceMetadata;
+}
+
+export interface EmailScanMessage {
+  id: string;
+  providerName: string;             // e.g. "LabCorp", "Quest Diagnostics", "Anthem Blue Cross", "MyChart", "Email Integration"
+  senderEmail: string;
+  subject: string;
+  receivedDate: string;
+  category: 'LAB_RESULT_ALERT' | 'INSURANCE_CLAIM_EOB' | 'APPOINTMENT_SUMMARY' | 'PRESCRIPTION_NOTICE' | 'PORTAL_NOTIFICATION';
+  hasAttachment: boolean;
+  attachmentName?: string;
+  portalLinkUrl?: string;
+  snippet: string;
+  parsedRecordCount: number;
+  provenanceTag: string;
+}
+
+export interface EmailAgentAnalysis {
+  analyzedAt: string;
+  connectedAccounts: Array<{
+    emailAddress: string;
+    providerType: 'GMAIL_OAUTH' | 'OUTLOOK_OAUTH' | 'YAHOO_OAUTH' | 'IMAP_CUSTOM';
+    status: 'CONNECTED' | 'DISCONNECTED';
+    lastScannedAt: string;
+  }>;
+  totalEmailsScanned: number;
+  healthEmailsIdentified: number;
+  insuranceClaimsParsed: number;
+  scannedMessages: EmailScanMessage[];
+  claims: InsuranceClaimEntry[];
+  deduplicatedRecordsCount: number;
+}
+
 export interface SymptomEntry {
   id: string;
   displayName: string;          // e.g. "Abdominal Pain", "Flank Pain", "Indigestion"
@@ -16,6 +96,7 @@ export interface SymptomEntry {
   onset?: string;               // ISO date or free text
   sourceDocId: string;
   sourceDocName: string;
+  provenance?: ProvenanceMetadata;
 }
 
 export interface DiagnosisEntry {
@@ -29,6 +110,7 @@ export interface DiagnosisEntry {
   sourceDocName: string;
   diagnosedDate?: string;       // ISO date — CRITICAL for episode clustering
   provider?: string;
+  provenance?: ProvenanceMetadata;
 }
 
 export interface LinkedClinicalRecord {
@@ -40,6 +122,7 @@ export interface LinkedClinicalRecord {
   sourceDocId: string;
   sourceDocName: string;
   severity?: string;
+  provenance?: ProvenanceMetadata;
 }
 
 export interface ClinicalEpisode {
@@ -91,6 +174,7 @@ export interface BiomarkerObservation {
   sourceDocName: string;
   category: string;
   relatedDiagnoses?: string[];   // diagnosisIds this lab value relates to
+  provenance?: ProvenanceMetadata;
 }
 
 export interface MedicationEntry {
@@ -110,6 +194,7 @@ export interface MedicationEntry {
   sourceDocName: string;
   diagnoses?: DiagnosisEntry[];  // Specific relevant diagnoses for THIS prescription
   symptoms?: SymptomEntry[];     // Symptoms this medication addresses
+  provenance?: ProvenanceMetadata;
 }
 
 export interface MedicationChangeRecord {
@@ -279,6 +364,7 @@ export interface ProcessedDocument {
   classification: ClassificationResult;
   extractedPayload: ExtractedMedicalPayload;
   documentUrl?: string;
+  provenance?: ProvenanceMetadata;
 }
 
 export abstract class BaseMedicalDocumentClass {
