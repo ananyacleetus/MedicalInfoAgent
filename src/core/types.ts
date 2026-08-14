@@ -470,3 +470,74 @@ export interface EHRIntegrationAnalysis {
   }>;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   AI-First Personal Health Record System Interfaces
+   ───────────────────────────────────────────────────────────── */
+
+export interface MissingRecordAuditItem {
+  id: string;
+  referencedRecordType: 'IMAGING_CT' | 'ECHOCARDIOGRAM' | 'LAB_PANEL' | 'SPECIALIST_CONSULT' | 'BIOPSY';
+  referencedTitle: string;            // e.g. "Abdominal CT Scan (Feb 2026)"
+  referringProvider: string;          // e.g. "Dr. Sarah Jenkins, MD"
+  sourceDocId: string;
+  sourceDocName: string;
+  dateReferenced: string;
+  status: 'MISSING' | 'IMPORTED' | 'DISMISSED';
+  promptMessage: string;              // "Your physician referenced a CT scan from February, but I don't have that report. Would you like to import it?"
+}
+
+export interface SpecialistContradictionAlert {
+  id: string;
+  topic: string;                      // e.g. "NSAID Use with Impaired Renal Function"
+  providerA: string;                 // e.g. "Dr. Marcus Vance (Nephrology)"
+  directiveA: string;                // "Strictly avoid NSAIDs due to GFR < 60"
+  providerB: string;                 // e.g. "Dr. Ellen Choi (Orthopedics)"
+  directiveB: string;                // "Prescribed Celecoxib for joint inflammation"
+  conflictSeverity: 'CRITICAL' | 'WARNING';
+  clinicalImpact: string;
+  recommendedQuestionForDoctor: string;
+}
+
+export interface ChronicHealthJourney {
+  journeyId: string;
+  journeyName: string;               // e.g. "Type 2 Diabetes & Metabolic Health"
+  startDate: string;
+  summaryNarrative: string;          // Continuous story narrative
+  keyMilestones: Array<{ date: string; title: string; detail: string }>;
+  biomarkerTrends: Array<{ name: string; changeText: string; direction: 'IMPROVED' | 'WORSENED' | 'STABLE' }>;
+  activeMedications: string[];
+  unansweredQuestions: string[];
+  linkedDocIds: string[];
+}
+
+export interface AppointmentPrepBrief {
+  appointmentId: string;
+  specialty: string;                 // e.g. "Endocrinology / Diabetes Follow-up"
+  doctorName?: string;
+  appointmentDate: string;
+  keyUpdatesSinceLastVisit: string[];
+  suggestedQuestionsToAsk: string[];
+  physicianHandoffSummary: string;   // 1-page executive summary text
+  relevantBiomarkerSummary: string;
+  activeMedicationList: string[];
+}
+
+export interface LongitudinalQAQuery {
+  id: string;
+  question: string;
+  answerNarrative: string;
+  referencedTimeframe: string;
+  correlatedMedications: string[];
+  correlatedBiomarkers: string[];
+  supportingDocIds: string[];
+}
+
+export interface AIHealthPlatformAnalysis {
+  analyzedAt: string;
+  missingRecordAudits: MissingRecordAuditItem[];
+  specialistContradictions: SpecialistContradictionAlert[];
+  healthJourneys: ChronicHealthJourney[];
+  appointmentBriefs: AppointmentPrepBrief[];
+  sampleLongitudinalQueries: LongitudinalQAQuery[];
+}
+

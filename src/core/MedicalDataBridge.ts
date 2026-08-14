@@ -1,10 +1,15 @@
-import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis, DiagnosisAgentAnalysis, DiagnosisEntry, SymptomEntry, EHRIntegrationAnalysis, EHRSyncResult, EHRConnectionConfig, EHRProviderSystem, EmailAgentAnalysis, SourceTrustWeightConfig } from './types';
+import { BiomarkerObservation, MedicationEntry, ProcessedDocument, MedicationAgentAnalysis, TimelineEvent, PatientTimelineSummary, TimelineFilterOptions, LabAgentAnalysis, DiagnosisAgentAnalysis, DiagnosisEntry, SymptomEntry, EHRIntegrationAnalysis, EHRSyncResult, EHRConnectionConfig, EHRProviderSystem, EmailAgentAnalysis, SourceTrustWeightConfig, AIHealthPlatformAnalysis, LongitudinalQAQuery } from './types';
 import { MedicationAgent } from './MedicationAgent';
 import { TimelineAgent } from './TimelineAgent';
 import { LabAgent } from './LabAgent';
 import { DiagnosisAgent } from './DiagnosisAgent';
 import { EHRAgent } from './EHRAgent';
 import { EmailAgent } from './EmailAgent';
+import { MissingRecordAgent } from './MissingRecordAgent';
+import { ContradictionAgent } from './ContradictionAgent';
+import { HealthJourneyAgent } from './HealthJourneyAgent';
+import { AppointmentPrepAgent } from './AppointmentPrepAgent';
+import { HealthIntelligenceQAEngine } from './HealthIntelligenceQAEngine';
 
 export type BridgeEventListener = (event: {
   type: 'DOCUMENT_INGESTED' | 'BIOMARKERS_UPDATED' | 'INSIGHTS_REQUESTED';
@@ -374,6 +379,26 @@ export class MedicalDataBridge {
   }
 
   /**
+   * Run the AI-First Health Platform Analysis (Missing Records, Contradictions, Journeys, Briefs, Q&A)
+   */
+  public getAIHealthPlatformAnalysis(): AIHealthPlatformAnalysis {
+    const docs = this.getAllDocuments();
+    return {
+      analyzedAt: new Date().toISOString(),
+      missingRecordAudits: MissingRecordAgent.getInstance().auditMissingRecords(docs),
+      specialistContradictions: ContradictionAgent.getInstance().detectContradictions(docs),
+      healthJourneys: HealthJourneyAgent.getInstance().synthesizeJourneys(docs),
+      appointmentBriefs: AppointmentPrepAgent.getInstance().generateAppointmentBriefs(docs),
+      sampleLongitudinalQueries: HealthIntelligenceQAEngine.getInstance().getSampleQueries()
+    };
+  }
+
+  public queryHealthIntelligence(userQuery: string): LongitudinalQAQuery {
+    const docs = this.getAllDocuments();
+    return HealthIntelligenceQAEngine.getInstance().queryHealthIntelligence(userQuery, docs);
+  }
+
+  /**
    * Exports a structured JSON payload engineered specifically for downstream Insights & Analytics AI agents
    */
   public exportAgentPayload(): {
@@ -394,6 +419,7 @@ export class MedicalDataBridge {
     ehrIntegrationAnalysis: EHRIntegrationAnalysis;
     emailAgentAnalysis: EmailAgentAnalysis;
     sourceTrustWeights: SourceTrustWeightConfig[];
+    aiHealthPlatformAnalysis: AIHealthPlatformAnalysis;
     patientTimeline: {
       summary: PatientTimelineSummary;
       events: TimelineEvent[];
@@ -419,6 +445,7 @@ export class MedicalDataBridge {
     const diagnosisAnalysis = this.getDiagnosisAgentAnalysis();
     const ehrIntegrationAnalysis = this.getEHRAgentAnalysis();
     const emailAgentAnalysis = this.getEmailAgentAnalysis();
+    const aiHealthPlatformAnalysis = this.getAIHealthPlatformAnalysis();
     const timelineEvents = this.getPatientTimeline();
     const timelineSummary = this.getTimelineSummary();
 
@@ -442,6 +469,7 @@ export class MedicalDataBridge {
       ehrIntegrationAnalysis,
       emailAgentAnalysis,
       sourceTrustWeights: this.getSourceTrustWeights(),
+      aiHealthPlatformAnalysis,
       patientTimeline: {
         summary: timelineSummary,
         events: timelineEvents

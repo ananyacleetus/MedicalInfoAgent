@@ -12,7 +12,8 @@ import {
   RotateCcw,
   Pill,
   CalendarClock,
-  Mail
+  Mail,
+  Brain
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -25,11 +26,13 @@ export const Navbar: React.FC = () => {
   const dxAnalysis = bridge.getDiagnosisAgentAnalysis();
   const ehrAnalysis = bridge.getEHRAgentAnalysis();
   const emailAnalysis = bridge.getEmailAgentAnalysis();
+  const aiPlatformAnalysis = bridge.getAIHealthPlatformAnalysis();
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: 'uploader', label: 'Document Ingestion', icon: <UploadCloud size={18} /> },
     { id: 'vault', label: 'Document Vault', icon: <FolderKanban size={18} />, badge: documents.length },
     { id: 'viewer', label: 'Document Inspector', icon: <Eye size={18} /> },
+    { id: 'ai-intelligence', label: 'AI Health Copilot', icon: <Brain size={18} />, badge: aiPlatformAnalysis.missingRecordAudits.length },
     { id: 'timeline', label: 'Patient Timeline', icon: <CalendarClock size={18} />, badge: timelineEvents.length },
     { id: 'diagnoses', label: 'Diagnoses & Symptoms', icon: <Stethoscope size={18} />, badge: dxAnalysis.clinicalEpisodes.length },
     { id: 'ehr', label: 'EHR & Portal Sync', icon: <Network size={18} />, badge: ehrAnalysis.activeConnectionsCount },
